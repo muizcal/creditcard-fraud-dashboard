@@ -22,14 +22,12 @@ Analyze credit card transactions to detect fraudulent behavior.
 Filters, EDA charts, ML models, and predictions included.
 """)
 
-
 @st.cache_data
 def load_data():
     df = pd.read_csv("creditcard_sample.csv")
     return df
 
 df = load_data()
-
 
 st.sidebar.header("Filters")
 transaction_type = st.sidebar.selectbox("Transaction Type", ["All", "Normal", "Fraud"])
@@ -49,7 +47,7 @@ if transaction_type == "Normal":
 elif transaction_type == "Fraud":
     filtered_df = filtered_df[filtered_df['Class'] == 1]
 
-
+# --- Tabs ---
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Data Preview", "EDA Charts", "Correlation Heatmap", "ML Models", "Predictions"
 ])
@@ -94,8 +92,11 @@ with tab4:
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    # Convert back to DataFrame to preserve indices
+    X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns, index=sample_df.index)
+
     X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, random_state=42, stratify=y
+        X_scaled_df, y, test_size=0.2, random_state=42, stratify=y
     )
 
     # Random Forest
@@ -118,7 +119,7 @@ with tab4:
     sns.barplot(x=feat_imp.values, y=feat_imp.index, palette='viridis', ax=ax_fi)
     st.pyplot(fig_fi)
 
-    # Logistic Regression
+
     lr = LogisticRegression(max_iter=1000, random_state=42)
     lr.fit(X_train, y_train)
     y_pred_lr = lr.predict(X_test)
@@ -135,7 +136,7 @@ with tab4:
 
 with tab5:
     st.subheader("Predict Fraud on Sample Transactions")
-    demo_df = X_test[:20]
+    demo_df = X_test.iloc[:20]  # keep original indices
     rf_pred_demo = rf.predict(demo_df)
     lr_pred_demo = lr.predict(demo_df)
 

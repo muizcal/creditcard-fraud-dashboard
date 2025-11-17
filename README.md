@@ -28,5 +28,76 @@ This Streamlit app analyzes credit card transactions to detect fraudulent behavi
 
 1. Clone the repository:
    <PRE>bash
-   git clone [<your-repo-url>](https://github.com/muizcal/creditcard-fraud-dashboard)
+   git clone https://github.com/muizcal/creditcard-fraud-dashboard
    cd https://github.com/muizcal/creditcard-fraud-dashboard </PRE>
+
+2. Install dependencies:
+
+    <pre>pip install -r requirements.txt </pre>
+
+3. Run the app:
+
+    <pre>streamlit run app.py</pre>
+
+4. Open the app in your browser at the link provided by Streamlit
+
+# Sidebar Filters
+
+Transaction Type: All / Normal / Fraud
+
+Transaction Amount Range: Filter by transaction value
+
+# Machine Learning Models
+
+-Random Forest Classifier
+
+-Logistic Regression
+
+Both models are trained on a sample of the dataset and evaluated with:
+
+-Accuracy
+
+-Classification Report
+
+-Confusion Matrix
+
+-Feature Importance (for Random Forest)
+
+
+# Visualizations
+
+Fraud vs Normal Transactions (count plot)
+
+Transaction Amount Distribution (histogram)
+
+Correlation Heatmap (feature correlation)
+
+# Predictions
+
+Predict fraud on first 20 transactions from test set.
+
+Download prediction results as CSV for further analysis.
+
+# Requirements
+
+Python 3.9+
+
+Streamlit
+
+Pandas
+
+NumPy
+
+Matplotlib
+
+Seaborn
+
+Scikit-learn
+
+Install dependencies with pip install -r requirements.txt
+
+# Links
+
+Original dataset on Kaggle: [Credit Card Fraud Detection](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+
+Streamlit Dashboard: [Add your deployed app link here](https://creditcard-fraud-dashboard-w8ekr7mhacmnlz2k83appvq.streamlit.app/)

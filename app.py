@@ -1,18 +1,14 @@
+# app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
-import os
-from kaggle.api.kaggle_api_extended import KaggleApi
-
 
 st.set_page_config(
     page_title="Credit Card Fraud Detection",
@@ -26,31 +22,10 @@ Analyze credit card transactions to detect fraudulent behavior.
 Filters, EDA charts, ML models, and predictions included.
 """)
 
-# --- Download dataset from Kaggle if not exists ---
-DATA_PATH = "creditcard.csv"
-
-if not os.path.exists(DATA_PATH):
-    st.info("Downloading dataset from Kaggle...")
-
-    # Kaggle API credentials from secrets
-    kaggle_username = st.secrets["eevaa5"]
-    kaggle_key = st.secrets["52b9a8ef8c2c6d025ae261cfbc7ddf6a"]
-
-    api = KaggleApi()
-    api.authenticate()
-    api.dataset_download_file('mlg-ulb/creditcardfraud', file_name='creditcard.csv', path='.')
-
-    # Unzip if necessary
-    if os.path.exists("creditcard.csv.zip"):
-        import zipfile
-        with zipfile.ZipFile("creditcard.csv.zip", 'r') as zip_ref:
-            zip_ref.extractall(".")
-        os.remove("creditcard.csv.zip")
-
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv(DATA_PATH)
+    df = pd.read_csv("creditcard_sample.csv")
     return df
 
 df = load_data()
@@ -58,9 +33,11 @@ df = load_data()
 
 st.sidebar.header("Filters")
 transaction_type = st.sidebar.selectbox("Transaction Type", ["All", "Normal", "Fraud"])
-amount_range = st.sidebar.slider("Transaction Amount Range", 
-                                 float(df['Amount'].min()), float(df['Amount'].max()),
-                                 (float(df['Amount'].min()), float(df['Amount'].max())))
+amount_range = st.sidebar.slider(
+    "Transaction Amount Range", 
+    float(df['Amount'].min()), float(df['Amount'].max()),
+    (float(df['Amount'].min()), float(df['Amount'].max()))
+)
 
 filtered_df = df[
     (df['Amount'] >= amount_range[0]) & 
@@ -73,13 +50,14 @@ elif transaction_type == "Fraud":
     filtered_df = filtered_df[filtered_df['Class'] == 1]
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Data Preview", "EDA Charts", "Correlation Heatmap", "ML Models", "Predictions"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Data Preview", "EDA Charts", "Correlation Heatmap", "ML Models", "Predictions"
+])
 
 
 with tab1:
     st.subheader("Filtered Data")
     st.dataframe(filtered_df.head(20))
-
     st.markdown("### Quick Statistics")
     st.write(filtered_df.describe())
 
@@ -107,11 +85,9 @@ with tab3:
 
 with tab4:
     st.subheader("Train ML Models")
-
-    st.markdown("We will train **Random Forest** and **Logistic Regression** models on a sample of 5000 rows for demo purposes.")
+    st.markdown("Random Forest and Logistic Regression on a sample of 5000 rows.")
 
     sample_df = filtered_df.sample(n=min(5000, len(filtered_df)), random_state=42)
-
     X = sample_df.drop(['Class'], axis=1)
     y = sample_df['Class']
 
@@ -122,7 +98,7 @@ with tab4:
         X_scaled, y, test_size=0.2, random_state=42, stratify=y
     )
 
-
+    # Random Forest
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
     y_pred_rf = rf.predict(X_test)
@@ -136,14 +112,13 @@ with tab4:
     sns.heatmap(cm_rf, annot=True, fmt='d', cmap='Blues', ax=ax_cm_rf)
     st.pyplot(fig_cm_rf)
 
-    # Feature Importance
     st.subheader("Feature Importance (Random Forest)")
     feat_imp = pd.Series(rf.feature_importances_, index=X.columns).sort_values(ascending=False)
     fig_fi, ax_fi = plt.subplots(figsize=(10,6))
     sns.barplot(x=feat_imp.values, y=feat_imp.index, palette='viridis', ax=ax_fi)
     st.pyplot(fig_fi)
 
-  
+    # Logistic Regression
     lr = LogisticRegression(max_iter=1000, random_state=42)
     lr.fit(X_train, y_train)
     y_pred_lr = lr.predict(X_test)
@@ -160,8 +135,6 @@ with tab4:
 
 with tab5:
     st.subheader("Predict Fraud on Sample Transactions")
-
-    # Take first 20 rows as demo
     demo_df = X_test[:20]
     rf_pred_demo = rf.predict(demo_df)
     lr_pred_demo = lr.predict(demo_df)
@@ -179,4 +152,3 @@ with tab5:
         file_name="fraud_predictions.csv",
         mime="text/csv"
     )
-
